@@ -1,4 +1,6 @@
 use std::env;
+use wasm_bindgen::prelude::*;
+
 mod built_in_functions;
 mod debug;
 mod evaluator;
@@ -10,6 +12,7 @@ pub mod value;
 
 use debug::EvaluatioError;
 use evaluator::Evaluator;
+
 
 fn main() {
     let args: Vec<String> = env::args().collect::<Vec<String>>(); // Collect command line arguments
@@ -24,4 +27,9 @@ fn main() {
     }
     let mut evaluator: Evaluator = Evaluator::new(); // Create a new evaluator for the file
     evaluator.ev_file(file); // Evaluate the file
+}
+
+fn run_ipl_code(ipl_code: String) {
+    let mut evaluator: Evaluator = Evaluator::new(); // Create a new evaluator for the code
+    // evaluator.ev_file(ipl_code);
 }
