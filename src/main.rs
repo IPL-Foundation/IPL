@@ -1,5 +1,6 @@
-use std::{env, fs::File, io::{self, Write}};
+use std::{env, fs::File, io::{Read, Write}};
 use wasm_bindgen::prelude::*;
+use gag::BufferRedirect;
 
 mod built_in_functions;
 mod debug;
@@ -12,10 +13,8 @@ pub mod value;
 
 use debug::EvaluatioError;
 use evaluator::Evaluator;
-// use std::fs;
 
 fn main() {
-    // println!("{}", run_ipl_code(fs::read_to_string("./examples/hello_world.ipl").unwrap_or("".to_string())));
     let args: Vec<String> = env::args().collect::<Vec<String>>(); // Collect command line arguments
     if args.len() < 2 {
         EvaluatioError::new("Please provide a file to evaluate".to_string()).raise();
@@ -26,6 +25,10 @@ fn main() {
         EvaluatioError::new("File must be a IPL file".to_string()).raise();
         return;
     }
+    run_ipl_file(file);
+}
+
+fn run_ipl_file(file: &String) {
     let mut evaluator: Evaluator = Evaluator::new(); // Create a new evaluator for the file
     evaluator.ev_file(file); // Evaluate the file
 }
@@ -41,17 +44,13 @@ pub fn run_ipl_code(ipl_code: String) -> String {
         let _ = temp_file.flush();
     }
 
-    // Capture stdout
-    let output = Vec::new();
+    // Redirect stdout
+    let mut buffer = String::new();
     {
-        let stdout = io::stdout();
-        let mut handle = stdout.lock();
-
-        let _ = {
-            let mut evaluator: Evaluator = Evaluator::new();
-            evaluator.ev_file(temp_file_path.to_str().unwrap());
-        };
+        let mut redirect = BufferRedirect::stdout().unwrap();
+        run_ipl_file(&temp_file_path.to_str().unwrap().to_string());
+        redirect.read_to_string(&mut buffer).unwrap();
     }
-
-    String::from_utf8_lossy(&output).to_string()
+    
+    buffer
 }
